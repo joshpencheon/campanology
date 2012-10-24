@@ -6,10 +6,8 @@ class GraphBuilder
   
   def initialize(n, changes)
     self.changes = changes
-    
     size = (1..n).to_a.inject(1, :*)
     self.adjacencies = Matrix.build(size) { 0 }
-    
     self.nodes = [ ]
     attach_node((1..n).to_a)
     
