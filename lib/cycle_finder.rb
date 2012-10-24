@@ -13,17 +13,48 @@ class CycleFinder
     self.nodes = nodes
     self.adjacencies = adjacencies
   end
-  
+
   # Look for Hamiltonian Cycles, as described
   # here: http://www.dharwadker.org/hamilton/
   def seek!
+    self.nodes.each { |node| seek_from_node(node) }
+  end
+
+  # -- PART I --
+  def grow_basic_path(visited_nodes)
+    puts "growing basic path from #{visited_nodes.length} nodes"
+    
+    current_node = visited_nodes.last
+    
+    while current_node && unvisited_neighbours_of(current_node, visited_nodes).length > 0
+      
+      puts " - looping, visited #{visited_nodes.length} nodes"
+      
+      neighbours = unvisited_neighbours_of(current_node, visited_nodes).map { |neighbour|
+        [ neighbour, unvisited_neighbours_of(neighbour, visited_nodes).length ]
+      }
+      
+      puts " - neighbours length: #{neighbours.length}, nodes: #{self.nodes.length}, visited_nodes: #{visited_nodes.length}"
+      
+      minimal_unvisited_count = neighbours.map(&:last).min
+      current_node = neighbours.rassoc(minimal_unvisited_count).first
+      
+      visited_nodes << current_node
+    end
+    
+    visited_nodes
+  end
+  
+  private
+  
+  def seek_from_node(starting_node)
     puts "seek started..."
     
     # -- PART I --  (starting from one node for now...)  
-    visited_nodes = grow_basic_path([ nodes.first ])
+    visited_nodes = grow_basic_path([ starting_node ])
     
-    puts "DEBUG: ADJ: #{self.adjacencies.inspect}"
-    puts "DEBUG: nodes connected to first: #{connected_to(nodes.first).inspect}"
+    # puts "DEBUG: ADJ: #{self.adjacencies.inspect}"
+    # puts "DEBUG: nodes connected to first: #{connected_to(nodes.first).inspect}"
     
     puts "got basic path of length #{visited_nodes.length}, moving on to IIa)..."
     
@@ -32,6 +63,7 @@ class CycleFinder
       target_nodes = extract_target_nodes_from_path(visited_nodes)
       
       while target_nodes.length > 0
+        puts "TNL: #{target_nodes.length}"
         visited_nodes = restructure_path(visited_nodes, target_nodes)
         target_nodes = extract_target_nodes_from_path(visited_nodes)
       end
@@ -62,33 +94,6 @@ class CycleFinder
         
     visited_nodes
   end
-
-  # -- PART I --
-  def grow_basic_path(visited_nodes)
-    puts "growing basic path from #{visited_nodes.length} nodes"
-    
-    current_node = visited_nodes.last
-    
-    while current_node && unvisited_neighbours_of(current_node, visited_nodes).length > 0
-      
-      puts " - looping, visited #{visited_nodes.length} nodes"
-      
-      neighbours = unvisited_neighbours_of(current_node, visited_nodes).map { |neighbour|
-        [ neighbour, unvisited_neighbours_of(neighbour, visited_nodes).length ]
-      }
-      
-      puts " - neighbours length: #{neighbours.length}, nodes: #{self.nodes.length}, visited_nodes: #{visited_nodes.length}"
-      
-      minimal_unvisited_count = neighbours.map(&:last).min
-      current_node = neighbours.rassoc(minimal_unvisited_count).first
-      
-      visited_nodes << current_node
-    end
-    
-    visited_nodes
-  end
-  
-  private
   
   # def trim_and_extend_path(visited_path, unvisited_path, extension_index)
   def trim_and_extend_path(visited_nodes)    
@@ -105,11 +110,11 @@ class CycleFinder
       
       puts " - got extension point: #{extension_index} out of #{visited_nodes.length}"
       
-      visited_indices = [].tap do |list|
-        self.nodes.each_with_index { |node, i| list << i+1 if visited_nodes.include?(node) }
-      end
+      # visited_indices = [].tap do |list|
+      #   self.nodes.each_with_index { |node, i| list << i+1 if visited_nodes.include?(node) }
+      # end
       
-      puts " - visited indicies count (to drop): #{visited_indices.length}"
+      # puts " - visited indicies count (to drop): #{visited_indices.length}"
 
       unvisited_nodes = self.nodes - visited_nodes
       reduced_adjacencies = self.adjacencies.select { |node, connections| unvisited_nodes.include?(node) }
@@ -149,25 +154,30 @@ class CycleFinder
   # -- PART II a) iterator --
   def restructure_path(visited_nodes, target_nodes)    
     candidate_nodes = target_nodes.map do |target_node|
-      unvisited_neighbours_of(target_node, visited_nodes).map { |neighbour|
+      following_node = visited_nodes[visited_nodes.index(target_node) + 1]
+      
+      unvisited_neighbours_of(following_node, visited_nodes).map { |neighbour|
         [ [target_node, neighbour], unvisited_neighbours_of(neighbour, visited_nodes).length ]
       }
     end.flatten(1)
+    
+    if candidate_nodes.length > 0            
+      maximal_unvisited_count = candidate_nodes.map(&:last).max
+    
+      pivot_node, additional_node = candidate_nodes.rassoc(maximal_unvisited_count).first
+      pivot_index = visited_nodes.index(pivot_node)
         
-    maximal_unvisited_count = candidate_nodes.map(&:last).max
-    pivot_node, additional_node = candidate_nodes.rassoc(maximal_unvisited_count).first
-    pivot_index = visited_nodes.index(pivot_node)
-        
-    visited_nodes = visited_nodes[0..pivot_index] + visited_nodes[(pivot_index + 1)..-1].reverse
-    visited_nodes << additional_node
-        
-    visited_nodes = grow_basic_path(visited_nodes)    
+      visited_nodes = visited_nodes[0..pivot_index] + visited_nodes[(pivot_index + 1)..-1].reverse
+      visited_nodes << additional_node
+    end
+    
+    visited_nodes = grow_basic_path(visited_nodes)
   end
   
   def extract_target_nodes_from_path(visited_nodes)
     connected_to(visited_nodes.last).select do |node|
       i = visited_nodes.index(node) 
-      i && unvisited_neighbours_of(visited_nodes[i + 1], visited_nodes).length > 0
+      i && (unvisited_neighbours_of(visited_nodes[i + 1], visited_nodes).length > 0)
     end
   end
   
