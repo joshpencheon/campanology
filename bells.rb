@@ -36,8 +36,6 @@ puts "*****************"
 
 finder = CycleFinder.from_graph_builder(builder)
 puts "done init..."
-path = finder.seek!
+finder.seek!
 
 puts "*****************"
-
-puts "valid extent: #{ExtentChecker.new(path).check}"

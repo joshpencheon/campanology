@@ -17,7 +17,12 @@ class CycleFinder
   # Look for Hamiltonian Cycles, as described
   # here: http://www.dharwadker.org/hamilton/
   def seek!
-    self.nodes.each { |node| seek_from_node(node) }
+    results = {}
+    self.nodes.each { |node| results[node] = seek_from_node(node) }
+    
+    results.each do |node, output|
+      puts "From #:#{self.nodes.index(node)} #{node.inspect}, got '#{output.first}', length #{output.last.length}", true
+    end
   end
 
   # -- PART I --
@@ -87,12 +92,14 @@ class CycleFinder
     if visited_nodes.length < nodes.length
       puts "Found path:"
       puts visited_nodes.inspect
+      
+      ['path', visited_nodes]
     else
       puts "Found Hamiltonian tour (no circuit check):"
       puts visited_nodes.inspect
+      
+      ['tour', visited_nodes]
     end
-        
-    visited_nodes
   end
   
   # def trim_and_extend_path(visited_path, unvisited_path, extension_index)
@@ -101,21 +108,12 @@ class CycleFinder
     
     subpath = visited_nodes[0..(visited_nodes.length - 3)]
       
-    extension_point = subpath.detect { |node| 
-      unvisited_neighbours_of(node, visited_nodes).length > 0 
-    }
-    extension_index = subpath.index(extension_point)
-          
-    if extension_point  
-      
+    extension_point = subpath.detect { |node| unvisited_neighbours_of(node, visited_nodes).length > 0 }
+              
+    if extension_point        
+      extension_index = subpath.index(extension_point)
       puts " - got extension point: #{extension_index} out of #{visited_nodes.length}"
       
-      # visited_indices = [].tap do |list|
-      #   self.nodes.each_with_index { |node, i| list << i+1 if visited_nodes.include?(node) }
-      # end
-      
-      # puts " - visited indicies count (to drop): #{visited_indices.length}"
-
       unvisited_nodes = self.nodes - visited_nodes
       reduced_adjacencies = self.adjacencies.select { |node, connections| unvisited_nodes.include?(node) }
 
@@ -191,6 +189,10 @@ class CycleFinder
   
   def connected?(a, b)
     connected_to(a).index(b)
+  end
+  
+  def puts(*args)
+    super if args.pop == true
   end
 
 end
