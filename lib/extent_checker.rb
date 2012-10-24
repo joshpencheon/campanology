@@ -1,21 +1,21 @@
 class ExtentChecker
 
-  attr_accessor :extent
+  attr_accessor :rows
 
   def initialize(extent)
-    self.extent = extent
+    self.rows = extent.is_a?(Array) ? extent : extent.rows
   end
 
   def check
     valid = true
-    extent.rows.each_with_index do |row, index|
-      if index + 1 < extent.rows.length
-        valid &&= proof(row, extent.rows[index + 1])
+    rows.each_with_index do |row, index|
+      if index + 1 < rows.length
+        valid &&= proof(row, rows[index + 1])
       end
     end
     
     # Check we can complete the loop:
-    valid &&= proof(extent.rows.last, extent.rows.first)
+    valid &&= proof(rows.last, rows.first)
   end
   
   private

@@ -176,5 +176,5 @@ class CycleFinder
   def connected?(a, b)
     connected_to(a).index(b)
   end
-  
+
 end
