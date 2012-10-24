@@ -1,7 +1,7 @@
 class Matrix
   
   def self.drop(matrix, indices)
-    raise ArgumentError unless matrix.symmetric?
+    # raise ArgumentError unless matrix.symmetric?
     
     n = matrix.row_size - indices.length
     

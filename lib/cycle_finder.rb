@@ -41,6 +41,8 @@ class CycleFinder
       visited_nodes = trim_and_extend_path(visited_nodes)
     end
     
+    puts "...done, moving on to IIc)..."
+    
     # -- PART II c) --
     if visited_nodes.length < nodes.length
       visited_nodes = trim_and_extend_path(visited_nodes.reverse)
@@ -55,7 +57,7 @@ class CycleFinder
       puts visited_nodes.inspect
     end
         
-    # visited_nodes
+    visited_nodes
   end
 
   # -- PART I --
@@ -95,9 +97,14 @@ class CycleFinder
     extension_index = subpath.index(extension_point)
       
     if extension_point  
+      
+      puts " - got extension point: #{extension_index} out of #{visited_nodes.length}"
+      
       visited_indices = [].tap do |list|
         self.nodes.each_with_index { |node, i| list << i+1 if visited_nodes.include?(node) }
       end
+      
+      puts " - visited indicies count (to drop): #{visited_indices.length}"
       reduced_adjacencies = Matrix.drop(self.adjacencies, visited_indices)
       
       unvisited_nodes = self.nodes - visited_nodes
@@ -125,6 +132,7 @@ class CycleFinder
       end
       
       if extended_path.length > visited_nodes.length
+        puts " - path extended by #{extended_path.length - visited_nodes.length}"
         trim_and_extend_path(extended_path)
       else
         visited_nodes

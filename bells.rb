@@ -25,10 +25,10 @@ puts "valid extent: #{ExtentChecker.new(extent).check}"
 
 puts "*****************"
 
-builder = GraphBuilder.new(4, [ 'x', '14', '12'])
+# builder = GraphBuilder.new(4, [ 'x', '14', '12'])
 # builder = GraphBuilder.new(7, [ 'x', '16', '12'])
 
-# builder = GraphBuilder.new(6, [ 'x', '16', '12'])
+builder = GraphBuilder.new(6, [ 'x', '16', '12'])
 
 puts builder.nodes.length
 
@@ -36,6 +36,8 @@ puts "*****************"
 
 finder = CycleFinder.from_graph_builder(builder)
 puts "done init..."
-finder.seek!
+path = finder.seek!
 
 puts "*****************"
+
+puts "valid extent: #{ExtentChecker.new(path).check}"
