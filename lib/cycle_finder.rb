@@ -8,6 +8,8 @@ class CycleFinder
   end
   
   def initialize(nodes, adjacencies)
+    puts "initialising with #{nodes.length} nodes..."
+    
     self.nodes = nodes
     self.adjacencies = adjacencies
   end
@@ -15,9 +17,12 @@ class CycleFinder
   # Look for Hamiltonian Cycles, as described
   # here: http://www.dharwadker.org/hamilton/
   def seek!
+    puts "seek started..."
     
     # -- PART I --    
     visited_nodes = grow_basic_path([ nodes.first ])
+    
+    puts "got basic path, moving on to IIa)..."
     
     # -- PART II a) --
     if visited_nodes.length < nodes.length
@@ -28,6 +33,8 @@ class CycleFinder
         target_nodes = extract_target_nodes_from_path(visited_nodes)
       end
     end
+    
+    puts "...done, moving on to IIb)..."
     
     # -- PART II b) --
     if visited_nodes.length < nodes.length
@@ -53,12 +60,19 @@ class CycleFinder
 
   # -- PART I --
   def grow_basic_path(visited_nodes)
+    puts "growing basic path from #{visited_nodes.length} nodes"
+    
     current_node = visited_nodes.last
     
     while current_node && unvisited_neighbours_of(current_node, visited_nodes).length > 0
+      
+      puts " - looping, visited #{visited_nodes.length} nodes"
+      
       neighbours = unvisited_neighbours_of(current_node, visited_nodes).map { |neighbour|
-        [ neighbour, unvisited_neighbours_of(neighbour, visited_nodes).lenth ]
+        [ neighbour, unvisited_neighbours_of(neighbour, visited_nodes).length ]
       }
+      
+      puts " - neighbours length: #{neighbours.length}, nodes: #{self.nodes.length}, visited_nodes: #{visited_nodes.length}"
       
       minimal_unvisited_count = neighbours.map(&:last).min
       current_node = neighbours.rassoc(minimal_unvisited_count).first
@@ -144,7 +158,7 @@ class CycleFinder
   end
   
   def unvisited_neighbours_of(node, visited_nodes)
-    visited_nodes - connected_to(node)
+    connected_to(node) - visited_nodes
   end
   
   def connected_to(node)
