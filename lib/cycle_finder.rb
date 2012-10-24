@@ -3,6 +3,10 @@ class CycleFinder
   attr_accessor :adjacencies
   attr_accessor :nodes
   
+  def self.from_graph_builder(graph_builder)
+    new(graph_builder.nodes, graph_builder.adjacencies)
+  end
+  
   def initialize(nodes, adjacencies)
     self.nodes = nodes
     self.adjacencies = adjacencies
@@ -27,33 +31,24 @@ class CycleFinder
     
     # -- PART II b) --
     if visited_nodes.length < nodes.length
-      subpath = visited_nodes[0..(visited_nodes.length - 3)]
-      
-      extension_point = subpath.detect { |node| 
-        unvisited_neighbours_of(node, visited_nodes).length > 0 
-      }
-      extension_index = subpath.index(extension_point)
-      
-      if extension_point  
-        visited_indices = [].tap do |list|
-          self.nodes.each_with_index { |node, i| list << i+1 if visited_nodes.include?(node) }
-        end
-        reduced_adjacencies = Matrix.drop(adjacencies, visited_indices)
-      
-        unvisited_nodes = nodes - visited_nodes
-        outside_cycle_finder = CycleFinder.new(unvisited_nodes, reduced_adjacencies)      
-
-        first_node = unvisited_neighbours_of(extension_point, visited_nodes).first        
-        additional_nodes = outside_cycle_finder.grow_basic_path([ first_node ])
-        
-        visited_nodes = trim_and_extend_path(additional_nodes, visited_nodes, extension_index)
-            
-      end  
+      visited_nodes = trim_and_extend_path(visited_nodes)
     end
     
+    # -- PART II c) --
+    if visited_nodes.length < nodes.length
+      visited_nodes = trim_and_extend_path(visited_nodes.reverse)
+    end
     
+    # -- PART III --
+    if visited_nodes.length < nodes.length
+      puts "Found path:"
+      puts visited_nodes.inspect
+    else
+      puts "Found Hamiltonian tour (no circuit check):"
+      puts visited_nodes.inspect
+    end
         
-    
+    # visited_nodes
   end
 
   # -- PART I --
@@ -76,30 +71,50 @@ class CycleFinder
   
   private
   
-  def trim_and_extend_path(visited_path, unvisited_path, extension_index)
-    
-    
-    # -------
-    
-    last_unvisited = unvisited_path.last
-    
-    v_j = (visited_path & connected_to(last_unvisited)).detect { |node|
-      j = visited_path.index(node)
-      (j > extension_index + 1) && (j < visited_path.length) && 
-        connected?(visited_path[j + 1], visited_path[extension_index + 1])
+  # def trim_and_extend_path(visited_path, unvisited_path, extension_index)
+  def trim_and_extend_path(visited_nodes)    
+    subpath = visited_nodes[0..(visited_nodes.length - 3)]
+      
+    extension_point = subpath.detect { |node| 
+      unvisited_neighbours_of(node, visited_nodes).length > 0 
     }
-    
-    if v_j
-      end_index = visited_path.index(v_j)
+    extension_index = subpath.index(extension_point)
       
-      extended_path = visited_path[0..extension_index]
-      extended_path += unvisited_path
-      extended_path += visited_path[(extension_index + 1)..end_index].reverse
-      extended_path += visited_path[(end_index + 1)..(visited_path.length - 1)]
+    if extension_point  
+      visited_indices = [].tap do |list|
+        self.nodes.each_with_index { |node, i| list << i+1 if visited_nodes.include?(node) }
+      end
+      reduced_adjacencies = Matrix.drop(self.adjacencies, visited_indices)
       
-      # trim_and_extend_path(extended_path, %%new_unvisited%%, %%new_extension%% )
-    else
-      visited_path
+      unvisited_nodes = self.nodes - visited_nodes
+      outside_cycle_finder = CycleFinder.new(unvisited_nodes, reduced_adjacencies)      
+
+      first_node = unvisited_neighbours_of(extension_point, visited_nodes).first        
+      unvisited_path = outside_cycle_finder.grow_basic_path([ first_node ])
+        
+      # visited_nodes = trim_and_extend_path(additional_nodes, visited_nodes, extension_index)
+          
+      v_j = (visited_nodes & connected_to(unvisited_path.last)).detect do |node|
+        j = visited_nodes.index(node)
+        (j > extension_index + 1) && (j < visited_nodes.length) && 
+            connected?(visited_nodes[j + 1], visited_nodes[extension_index + 1])
+      end
+      
+      extended_path = []
+      if v_j
+        end_index = visited_nodes.index(v_j)
+      
+        extended_path += visited_nodes[0..extension_index]
+        extended_path += unvisited_path
+        extended_path += visited_nodes[(extension_index + 1)..end_index].reverse
+        extended_path += visited_nodes[(end_index + 1)..(visited_nodes.length - 1)]
+      end
+      
+      if extended_path.length > visited_nodes.length
+        trim_and_extend_path(extended_path)
+      else
+        visited_nodes
+      end         
     end
   end
   

@@ -33,3 +33,9 @@ builder = GraphBuilder.new(6, [ 'x', '16', '12'])
 puts builder.nodes.length
 
 puts "*****************"
+
+finder = CycleFinder.from_graph_builder(builder)
+puts "done init..."
+finder.seek!
+
+puts "*****************"
