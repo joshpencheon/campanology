@@ -22,7 +22,10 @@ class CycleFinder
     # -- PART I --  (starting from one node for now...)  
     visited_nodes = grow_basic_path([ nodes.first ])
     
-    puts "got basic path, moving on to IIa)..."
+    puts "DEBUG: ADJ: #{self.adjacencies.inspect}"
+    puts "DEBUG: nodes connected to first: #{connected_to(nodes.first).inspect}"
+    
+    puts "got basic path of length #{visited_nodes.length}, moving on to IIa)..."
     
     # -- PART II a) --
     if visited_nodes.length < nodes.length

@@ -33,14 +33,10 @@ class GraphBuilder
       
       self.nodes << row
             
-      new_rows = apply_changes(row)
-      new_rows.map { |new_row| attach_node(new_row) }.each do |other_index|
-        connect(insertion_index, other_index)
+      apply_changes(row).map do |new_row| 
+        connect(row, new_row)
+        attach_node(new_row) 
       end
-      
-      insertion_index
-    else
-      self.nodes.index(row)
     end
   end
   
