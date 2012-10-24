@@ -7,18 +7,24 @@ class GraphBuilder
   def initialize(n, changes)
     self.changes = changes
     size = (1..n).to_a.inject(1, :*)
-    self.adjacencies = Matrix.build(size) { 0 }
+    # self.adjacencies = Matrix.build(size) { 0 }
+    self.adjacencies = Hash.new { |hash, key| hash[key] = [] }    
     self.nodes = [ ]
     attach_node((1..n).to_a)
     
-    puts (Matrix.build(1, size) { 1 } * self.adjacencies * Matrix.build(size, 1) { 1 }).inspect
+    # puts (Matrix.build(1, size) { 1 } * self.adjacencies * Matrix.build(size, 1) { 1 }).inspect
+    puts self.adjacencies.inject(0) { |acc, h| acc += h.length }
   end
     
   private
   
   def connect(node1, node2)    
-    self.adjacencies.set(node1, node2, 1)
-    self.adjacencies.set(node2, node1, 1)
+    # self.adjacencies.set(node1, node2, 1)
+    # self.adjacencies.set(node2, node1, 1)
+    
+    # TEMP - duplicate data:
+    self.adjacencies[node1] << node2
+    self.adjacencies[node2] << node1
   end
   
   def attach_node(row)

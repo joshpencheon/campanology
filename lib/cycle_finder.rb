@@ -19,7 +19,7 @@ class CycleFinder
   def seek!
     puts "seek started..."
     
-    # -- PART I --    
+    # -- PART I --  (starting from one node for now...)  
     visited_nodes = grow_basic_path([ nodes.first ])
     
     puts "got basic path, moving on to IIa)..."
@@ -89,13 +89,15 @@ class CycleFinder
   
   # def trim_and_extend_path(visited_path, unvisited_path, extension_index)
   def trim_and_extend_path(visited_nodes)    
+    extended_path = []
+    
     subpath = visited_nodes[0..(visited_nodes.length - 3)]
       
     extension_point = subpath.detect { |node| 
       unvisited_neighbours_of(node, visited_nodes).length > 0 
     }
     extension_index = subpath.index(extension_point)
-      
+          
     if extension_point  
       
       puts " - got extension point: #{extension_index} out of #{visited_nodes.length}"
@@ -105,9 +107,10 @@ class CycleFinder
       end
       
       puts " - visited indicies count (to drop): #{visited_indices.length}"
-      reduced_adjacencies = Matrix.drop(self.adjacencies, visited_indices)
-      
+
       unvisited_nodes = self.nodes - visited_nodes
+      reduced_adjacencies = self.adjacencies.select { |node, connections| unvisited_nodes.include?(node) }
+
       outside_cycle_finder = CycleFinder.new(unvisited_nodes, reduced_adjacencies)      
 
       first_node = unvisited_neighbours_of(extension_point, visited_nodes).first        
@@ -120,8 +123,7 @@ class CycleFinder
         (j > extension_index + 1) && (j < visited_nodes.length) && 
             connected?(visited_nodes[j + 1], visited_nodes[extension_index + 1])
       end
-      
-      extended_path = []
+    
       if v_j
         end_index = visited_nodes.index(v_j)
       
@@ -130,14 +132,15 @@ class CycleFinder
         extended_path += visited_nodes[(extension_index + 1)..end_index].reverse
         extended_path += visited_nodes[(end_index + 1)..(visited_nodes.length - 1)]
       end
-      
-      if extended_path.length > visited_nodes.length
-        puts " - path extended by #{extended_path.length - visited_nodes.length}"
-        trim_and_extend_path(extended_path)
-      else
-        visited_nodes
-      end         
     end
+
+    if extended_path.length > visited_nodes.length
+      puts " - path extended by #{extended_path.length - visited_nodes.length}"
+      trim_and_extend_path(extended_path)
+    else
+      puts " - failed to extend, returning #{visited_nodes.length}"
+      visited_nodes
+    end         
   end
   
   # -- PART II a) iterator --
@@ -169,16 +172,8 @@ class CycleFinder
     connected_to(node) - visited_nodes
   end
   
-  def connected_to(node)
-    label = self.nodes.index(node)
-    
-    [].tap do |connections|
-      self.adjacencies.column(label).to_a.each_with_index do |entry, index|
-        if entry > 0
-          connections << self.nodes[index]
-        end
-      end
-    end
+  def connected_to(node)    
+    self.adjacencies[node] || []
   end
   
   def connected?(a, b)
