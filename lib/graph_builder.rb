@@ -11,9 +11,8 @@ class GraphBuilder
     self.adjacencies = Hash.new { |hash, key| hash[key] = [] }    
     self.nodes = [ ]
     attach_node((1..n).to_a)
-    
-    # puts (Matrix.build(1, size) { 1 } * self.adjacencies * Matrix.build(size, 1) { 1 }).inspect
-    puts self.adjacencies.inject(0) { |acc, h| acc += h.length }
+  
+    puts self.adjacencies.map { |k, v| v.length }.inject(0, &:+)
   end
     
   private
@@ -25,6 +24,9 @@ class GraphBuilder
     # TEMP - duplicate data:
     self.adjacencies[node1] << node2
     self.adjacencies[node2] << node1
+    
+    self.adjacencies[node1].uniq!
+    self.adjacencies[node2].uniq!
   end
   
   def attach_node(row)
@@ -32,8 +34,7 @@ class GraphBuilder
       insertion_index = self.nodes.length
       
       self.nodes << row
-            
-      apply_changes(row).map do |new_row| 
+      apply_changes(row).each do |new_row| 
         connect(row, new_row)
         attach_node(new_row) 
       end
