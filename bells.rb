@@ -13,6 +13,7 @@ require_relative 'lib/extent_builder'
 require_relative 'lib/cycle_finder'
 
 require_relative 'lib/graph_builder'
+require_relative 'lib/complete_graph'
 
 extent = ExtentBuilder.new(6)
 
@@ -31,6 +32,12 @@ puts "*****************"
 builder = GraphBuilder.new(6, [ 'x', '16', '12'])
 
 puts builder.nodes.length
+
+puts "*****************"
+
+complete = CompleteGraph.new(builder.nodes)
+
+puts complete.adjacencies.map { |k, v| v.length }.inject(0, &:+)
 
 puts "*****************"
 
