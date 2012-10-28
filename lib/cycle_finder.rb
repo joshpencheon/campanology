@@ -24,6 +24,10 @@ class CycleFinder
       puts "From #:#{self.nodes.index(node)} #{node.inspect}, got '#{output.first}', length #{output.last.length}", true
     end
   end
+  
+  def conditions_met?
+    nodes.map { |node| connected_to(node).length }.min >= (nodes.length / 2)
+  end
 
   # -- PART I --
   def grow_basic_path(visited_nodes)

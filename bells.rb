@@ -39,10 +39,13 @@ complete = CompleteGraph.new(builder.nodes)
 
 puts complete.adjacencies.map { |k, v| v.length }.inject(0, &:+)
 
+puts CycleFinder.new(complete.nodes, complete.adjacencies).conditions_met?
+
 puts "*****************"
 
 finder = CycleFinder.from_graph_builder(builder)
-puts "done init..."
-finder.seek!
+
+puts finder.conditions_met?
+# finder.seek!
 
 puts "*****************"
