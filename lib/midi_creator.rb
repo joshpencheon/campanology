@@ -8,11 +8,11 @@ class MidiCreator
     self.note_map = note_map
   end
   
-  def export(path)
-    File.open(path, 'w') do |file|
-      midi_bytes.each do |byte|
-        file.print(byte.chr)
-      end
+  def export!
+    path = File.join(File.dirname(__FILE__), "..", "extent-#{Time.now.to_s}.mid")
+    
+    File.open(path, 'w:binary') do |file|
+      file.print(midi_bytes.map {|b| b.to_i(16)}.pack('C*'))
     end
   end
   
@@ -41,12 +41,16 @@ class MidiCreator
     bytes << "4D" << "54" << "72" << "6B" # "MTrk"
     
     # Total number of bytes in the track:
-    #   (4 on, 4 off per ring)
-    bytes += (self.rows.flatten.length * 8).to_s(16).rjust(8, '0').scan(/../)
+    #   (4 on, 4 off per ring, plus 8 for a pause after each round)
+    bytes += ((self.rows.length * 8) + (self.rows.flatten.length * 8)).to_s(16).rjust(8, '0').scan(/../)
     
-    self.rows.flatten.each do |ring|
-      bytes << "7F" << "90" << encode(ring) << "60" # Note on
-      bytes << "7F" << "80" << encode(ring) << "60" # Note off
+    n = self.rows.first.length 
+    self.rows.flatten.each_with_index do |ring, index|
+      bytes << "00" << "90" << encode(ring) << "60" # Note on
+      bytes << "40" << "80" << encode(ring) << "60" # Note off
+      
+      # Add pause after each round:
+      bytes += %w( 20 90 00 00 20 90 00 00 ) if index % n == n - 1
     end
     
     bytes << "00" << "FF" << "2F" << "00" # End of track
