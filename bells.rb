@@ -52,7 +52,9 @@ puts finder.conditions_met?
 
 puts "*****************"
 
-MidiCreator.new(extent.rows).export!
+MidiCreator.new(extent.rows, {
+  1=>69, 2=>67, 3=>65, 4=>64, 5=>62, 6=>60
+}).export!
 puts "Extent MIDI outputted!"
 
 puts "*****************"
