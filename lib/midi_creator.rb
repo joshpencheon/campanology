@@ -1,33 +1,51 @@
 class MidiCreator
   
-  attr_accessor :rows
-  attr_accessor :note_map
+  TONE_MAP = [ "C(-1)", "Db(-1)", "D(-1)", "Eb(-1)", "E(-1)", "F(-1)", "Gb(-1)", 
+    "G(-1)", "Ab(-1)", "A(-1)", "Bb(-1)", "B(-1)", "C0", "Db0", "D0", "Eb0", "E0",
+    "F0", "Gb0", "G0", "Ab0", "A0", "Bb0", "B0", "C1", "Db1", "D1", "Eb1", "E1",
+    "F1", "Gb1", "G1", "Ab1", "A1", "Bb1", "B1", "C2", "Db2", "D2", "Eb2", "E2",
+    "F2", "Gb2", "G2", "Ab2", "A2", "Bb2", "B2", "C3", "Db3", "D3", "Eb3", "E3", "F3",
+    "Gb3", "G3", "Ab3", "A3", "Bb3", "B3", "C4", "Db4", "D4", "Eb4", "E4", "F4", "Gb4",
+    "G4", "Ab4", "A4", "Bb4", "B4", "C5", "Db5", "D5", "Eb5", "E5", "F5", "Gb5", "G5",
+    "Ab5", "A5", "Bb5", "B5", "C6", "Db6", "D6", "Eb6", "E6", "F6", "Gb6", "G6", "Ab6",
+    "A6", "Bb6", "B6", "C7", "Db7", "D7", "Eb7", "E7", "F7", "Gb7", "G7", "Ab7", "A7", 
+    "Bb7", "B7", "C8", "Db8", "D8", "Eb8", "E8", "F8", "Gb8", "G8", "Ab8", "A8", "Bb8", 
+    "B8", "C9", "Db9", "D9", "Eb9", "E9", "F9", "Gb9", "G9" ]
   
-  def initialize(rows, note_map = build_default_note_map)
-    self.rows = rows
-    self.note_map = note_map
+  # attr_accessor :rows
+  # attr_accessor :note_map
+  # 
+  # def initialize(rows, note_map = build_default_note_map)
+  #   self.rows = rows
+  #   self.note_map = note_map
+  # end
+  
+  attr_accessor :tracks
+  
+  def initialize(tracks)
+    self.tracks = tracks
   end
   
   def export!
-    path = File.join(File.dirname(__FILE__), "..", "extent-#{Time.now.to_s}.mid")
+    path = File.join(File.dirname(__FILE__), "..", "extent.mid")
     
     File.open(path, 'w:binary') do |file|
-      file.print(midi_bytes.map {|b| b.to_i(16)}.pack('C*'))
+      file.print(midi_bytes.map { |b| b.to_i(16) }.pack('C*'))
     end
   end
   
   private
   
   def encode(ring)
-    note_map[ring].to_s(16)
+    MidiCreator::TONE_MAP.index(ring).to_s(16)
   end
-  
-  # Map 1..12 to the octave starting from middle C (c4).
-  def build_default_note_map
-    {}.tap do |map|
-      (1..12).each { |tone| map[tone] = 59 + tone }
-    end
-  end
+   
+  # # Map 1..12 to the octave starting from middle C (c4).
+  # def build_default_note_map
+  #   {}.tap do |map|
+  #     (1..12).each { |tone| map[tone] = 59 + tone }
+  #   end
+  # end
   
   def midi_bytes
     bytes = []
@@ -35,25 +53,32 @@ class MidiCreator
     bytes << "4D" << "54" << "68" << "64" # "MThd"
     bytes << "00" << "00" << "00" << "06" # Size of rest of header
     bytes << "00" << "01" # MIDI subtype
-    bytes << "00" << "01" # Track count
+    
+    # Track count
+    self.tracks.length.to_s(16).rjust(4, '0').scan(/../).each { |byte| bytes << byte }
+    
     bytes << "00" << "80" # Play speed
+
+    self.tracks.each do |track|
+      bytes << "4D" << "54" << "72" << "6B" # "MTrk"
     
-    bytes << "4D" << "54" << "72" << "6B" # "MTrk"
+      # Total number of bytes in the track:
+      #   (4 on, 4 off per ring, plus 8 for a pause after each round)
+      bytes += ((track.length * 8) + (track.flatten.length * 8)).to_s(16).rjust(8, '0').scan(/../)
     
-    # Total number of bytes in the track:
-    #   (4 on, 4 off per ring, plus 8 for a pause after each round)
-    bytes += ((self.rows.length * 8) + (self.rows.flatten.length * 8)).to_s(16).rjust(8, '0').scan(/../)
-    
-    n = self.rows.first.length 
-    self.rows.flatten.each_with_index do |ring, index|
-      bytes << "00" << "90" << encode(ring) << "60" # Note on
-      bytes << "40" << "80" << encode(ring) << "60" # Note off
+      n = track.first.length 
+      track.flatten.each_with_index do |ring, index|
+        bytes << "00" << "90" << encode(ring) << "60" # Note on
+        bytes << "40" << "80" << encode(ring) << "60" # Note off
       
-      # Add pause after each round:
-      bytes += %w( 20 90 00 00 20 90 00 00 ) if index % n == n - 1
+        # Add pause after each round:
+        bytes += %w( 20 90 00 00 20 90 00 00 ) if index % n == n - 1
+      end
+    
+      bytes << "00" << "FF" << "2F" << "00" # End of track
     end
     
-    bytes << "00" << "FF" << "2F" << "00" # End of track
+    bytes
   end
     
 end
