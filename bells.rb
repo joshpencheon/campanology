@@ -56,7 +56,7 @@ puts "*****************"
 #   1=>69, 2=>67, 3=>65, 4=>64, 5=>62, 6=>60
 # }).export!
 
-MidiCreator.new([extent.midi_out(["C4", "D4", "Eb4", "F4", "G4", "Ab4"])]).export!
+MidiCreator.new([extent.tune(["C4", "D4", "Eb4", "F4", "G4", "Ab4"])]).export!
 
 puts "Extent MIDI outputted!"
 
