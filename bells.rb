@@ -52,17 +52,13 @@ puts finder.conditions_met?
 
 puts "*****************"
 
-# MidiCreator.new(extent.rows, {
-#   1=>69, 2=>67, 3=>65, 4=>64, 5=>62, 6=>60
-# }).export!
+five_bells = ExtentBuilder.new(5)
 
-tonescape = ["C4", "D4", "Eb4", "F4", "G4", "Ab4"]
+pentatonic = ["Db4", "Eb4", "Gb4", "Ab4", "Bb4"]
 tracks = []
-tonescape.length.times { |x| tracks << extent.tune(tonescape.rotate(x)) }
+pentatonic.length.times { |x| tracks << five_bells.tune(pentatonic.rotate(x)) }
 
-exporter = MidiCreator.new(tracks)
-
-exporter.export!
+MidiCreator.new(tracks).export!
 
 puts "Extent MIDI outputted!"
 
