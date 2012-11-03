@@ -56,10 +56,11 @@ puts "*****************"
 #   1=>69, 2=>67, 3=>65, 4=>64, 5=>62, 6=>60
 # }).export!
 
-exporter = MidiCreator.new([
-  extent.tune(["C4", "D4", "Eb4", "F4", "G4", "Ab4"]),
-  extent.tune(["C4", "D4", "Eb4", "F4", "G4", "Ab4"].reverse)
-])
+tonescape = ["C4", "D4", "Eb4", "F4", "G4", "Ab4"]
+tracks = []
+tonescape.length.times { |x| tracks << extent.tune(tonescape.rotate(x)) }
+
+exporter = MidiCreator.new(tracks)
 
 exporter.export!
 
