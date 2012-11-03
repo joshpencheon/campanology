@@ -1,9 +1,7 @@
-require "matrix"
-
 require "rubygems"
 require "active_support/core_ext/array"
 
-require_relative 'extensions/matrix'
+# require_relative 'extensions/matrix'
 
 require_relative 'lib/extent'
 require_relative 'lib/extent_finder'
