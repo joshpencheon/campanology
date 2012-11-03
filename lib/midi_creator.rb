@@ -53,26 +53,26 @@ class MidiCreator
     bytes << "4D" << "54" << "68" << "64" # "MThd"
     bytes << "00" << "00" << "00" << "06" # Size of rest of header
     bytes << "00" << "01" # MIDI subtype
-    
-    # Track count
+        
     self.tracks.length.to_s(16).rjust(4, '0').scan(/../).each { |byte| bytes << byte }
     
     bytes << "00" << "80" # Play speed
 
-    self.tracks.each do |track|
+    self.tracks.each_with_index do |track, track_index|
       bytes << "4D" << "54" << "72" << "6B" # "MTrk"
     
       # Total number of bytes in the track:
-      #   (4 on, 4 off per ring, plus 8 for a pause after each round)
-      bytes += ((track.length * 8) + (track.flatten.length * 8)).to_s(16).rjust(8, '0').scan(/../)
+      #   (4 on, 4 off per ring, plus 8 for a pause after each round,
+      #    plus 4 extra bytes to denote the end of the track)
+      bytes += ((track.length * 8) + (track.flatten.length * 8) + 4).to_s(16).rjust(8, '0').scan(/../)
     
       n = track.first.length 
       track.flatten.each_with_index do |ring, index|
-        bytes << "00" << "90" << encode(ring) << "60" # Note on
-        bytes << "40" << "80" << encode(ring) << "60" # Note off
+        bytes << "00" << "9#{track_index}" << encode(ring) << "60" # Note on
+        bytes << "40" << "8#{track_index}" << encode(ring) << "60" # Note off
       
         # Add pause after each round:
-        bytes += %w( 20 90 00 00 20 90 00 00 ) if index % n == n - 1
+        bytes += %W( 20 9#{track_index} 00 00 20 9#{track_index} 00 00 ) if index % n == n - 1
       end
     
       bytes << "00" << "FF" << "2F" << "00" # End of track
