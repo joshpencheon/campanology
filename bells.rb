@@ -1,7 +1,6 @@
 require "rubygems"
 require "active_support/core_ext/array"
-
-# require_relative 'extensions/matrix'
+require "pp"
 
 require_relative 'lib/extent'
 require_relative 'lib/extent_finder'
@@ -26,10 +25,11 @@ puts "valid extent: #{ExtentChecker.new(extent).check}"
 
 puts "*****************"
 
-builder = GraphBuilder.new(4, [ 'x', '14', '12'])
+# builder = GraphBuilder.new(4, [ 'x', '14', '12'])
 # builder = GraphBuilder.new(7, [ 'x', '16', '12'])
 
 # builder = GraphBuilder.new(6, [ 'x', '16', '12'])
+builder = GraphBuilder.new(5, [ '345', '145', '125', '123'])
 
 puts builder.nodes.length
 
@@ -46,7 +46,20 @@ puts "*****************"
 finder = CycleFinder.from_graph_builder(builder)
 
 puts finder.conditions_met?
-#finder.seek!
+results = finder.seek!
+
+cycles = []
+results.each do |starting_node, node_results|
+  node_results ||= {}
+  
+  (node_results[:cycles] || []).each do |cycle|
+    cycles << cycle
+  end
+end
+
+puts "Cycle count: #{cycles.length}"
+puts "Valid cycle count: #{cycles.select { |cycle| ExtentChecker.new(cycle).check }.length}"
+puts "Unique cycle count: #{cycles.uniq.length}"
 
 puts "*****************"
 

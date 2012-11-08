@@ -20,9 +20,11 @@ class CycleFinder
     results = {}
     self.nodes.each { |node| results[node] = seek_from_node(node) }
     
-    results.each do |node, output|
-      puts "From #:#{self.nodes.index(node)} #{node.inspect}, got '#{output.first}', length #{output.last.length}", true
-    end
+    # results.each do |node, output|
+    #   puts "From #:#{self.nodes.index(node)} #{node.inspect}, got '#{output.first}', length #{output.last.length}", true
+    # end
+    
+    results
   end
   
   def conditions_met?
@@ -93,39 +95,30 @@ class CycleFinder
     end
     
     # -- PART III --
-    if visited_nodes.length < nodes.length
-      puts "Found path:"
-      puts visited_nodes.inspect
-      
-      ['path', visited_nodes]
+    results = {}
+    
+    if visited_nodes.length < nodes.length      
+      results[:path] = visited_nodes
     else
-      puts "Found Hamiltonian tour:", true
-      puts visited_nodes.inspect
+      results[:tour] = visited_nodes
+            
+      cycle_starts = connected_to(visited_nodes.first).map do |node|
+        visited_nodes[visited_nodes.index(node) - 1]
+      end
+      cycle_ends = connected_to(visited_nodes.last)
       
-      # (ii) Define X = {vi | v1vi+1∈E} and Y = {vi | vivn∈E}. If X∩Y  ≠ ∅, then for each vi∈X∩Y : 
-      # Output: Found Hamiltonian circuit v1, ..., vi-1, vi, vn, vn-1, ..., vi+1.
-      
-      connected_to_first = connected_to(visited_nodes.first)
-      connected_to_last  = connected_to(visited_nodes.last)
-      
-      puts visited_nodes.first.inspect, true
-      puts visited_nodes.last.inspect, true      
-      
-      puts connected_to_first.inspect, true
-      puts connected_to_last.inspect, true
-      
-      (connected_to_first & connected_to_last).each do |node|
+      (cycle_starts & cycle_ends).each do |node|
         index = visited_nodes.index(node)
         
-        circuit  = visited_nodes[0..index] + visited_nodes.last
+        circuit  = visited_nodes[0..index] + [ visited_nodes.last ]
         circuit += visited_nodes[(index + 1 - visited_nodes.length)..-2].reverse
         
-        puts "!!! Found Hamiltonian Circuit:", true
-        puts circuit.inspect
+        results[:cycles] ||= []
+        results[:cycles] << circuit
       end
-      
-      ['tour', visited_nodes]
     end
+    
+    results
   end
   
   # def trim_and_extend_path(visited_path, unvisited_path, extension_index)
