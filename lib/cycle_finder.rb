@@ -57,7 +57,7 @@ class CycleFinder
   private
   
   def seek_from_node(starting_node)
-    puts "seek started..."
+    puts "seek started from node #{starting_node.inspect}..."
     
     # -- PART I --  (starting from one node for now...)  
     visited_nodes = grow_basic_path([ starting_node ])
@@ -99,8 +99,30 @@ class CycleFinder
       
       ['path', visited_nodes]
     else
-      puts "Found Hamiltonian tour (no circuit check):"
+      puts "Found Hamiltonian tour:", true
       puts visited_nodes.inspect
+      
+      # (ii) Define X = {vi | v1vi+1∈E} and Y = {vi | vivn∈E}. If X∩Y  ≠ ∅, then for each vi∈X∩Y : 
+      # Output: Found Hamiltonian circuit v1, ..., vi-1, vi, vn, vn-1, ..., vi+1.
+      
+      connected_to_first = connected_to(visited_nodes.first)
+      connected_to_last  = connected_to(visited_nodes.last)
+      
+      puts visited_nodes.first.inspect, true
+      puts visited_nodes.last.inspect, true      
+      
+      puts connected_to_first.inspect, true
+      puts connected_to_last.inspect, true
+      
+      (connected_to_first & connected_to_last).each do |node|
+        index = visited_nodes.index(node)
+        
+        circuit  = visited_nodes[0..index] + visited_nodes.last
+        circuit += visited_nodes[(index + 1 - visited_nodes.length)..-2].reverse
+        
+        puts "!!! Found Hamiltonian Circuit:", true
+        puts circuit.inspect
+      end
       
       ['tour', visited_nodes]
     end

@@ -46,7 +46,7 @@ puts "*****************"
 finder = CycleFinder.from_graph_builder(builder)
 
 puts finder.conditions_met?
-# finder.seek!
+#finder.seek!
 
 puts "*****************"
 
