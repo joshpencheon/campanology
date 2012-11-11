@@ -20,6 +20,7 @@ require_relative 'lib/change_finder'
 
 require_relative 'lib/graph_builder'
 require_relative 'lib/complete_graph'
+require_relative 'lib/weighted_graph'
 
 require_relative 'lib/midi_creator'
 
@@ -90,4 +91,25 @@ bell_count = 7
 puts "On #{bell_count} bells, expect #{ChangeFinder.count_for(bell_count)} valid changes:"
 ChangeFinder.new(8).valid_changes_in_notation.each_with_index { |change, index| puts "  #{index+1}:  #{change.inspect}" }
 
-puts "*************************"
+puts "**** [Weighted Graph - Prim's] ****"
+
+puts "Arbitarily weighting original graph..."
+weighted_adjacencies = {}
+builder.adjacencies.each do |node, connections|
+  weighted_adjacencies[node] ||= {} 
+
+  connections.each do |other_node| 
+    distance = [node, other_node].sort.flatten.join.to_i
+    weighted_adjacencies[node][other_node] = distance
+  end
+end
+
+weighted_graph = WeightedGraph.new(builder.nodes, weighted_adjacencies)
+
+puts "Finding MST using Prim's algorithm..."
+mst = weighted_graph.minimum_spanning_tree
+
+puts "  MST has #{mst.nodes.length} nodes"
+puts "  adjacency count: " + mst.adjacencies.map { |k, v| v.length }.inject(0, &:+).to_s
+
+puts "**********************"

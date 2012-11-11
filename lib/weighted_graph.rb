@@ -8,11 +8,12 @@ class WeightedGraph
     self.adjacencies = adjacencies
   end
   
+  # Implementing Prim's Algorithm for finding MST
   def minimum_spanning_tree
-    tree_nodes = nodes.first
+    tree_nodes = [ nodes.first ]
     tree_adjacencies = {}
     
-    while tree_nodes.length < nodes.length
+    while tree_nodes.length < nodes.length      
       candidates = {}.tap do |hash|
         tree_nodes.each do |node|  
           adjacencies[node].each do |other_node, distance|
@@ -22,7 +23,8 @@ class WeightedGraph
       end
       
       first_node, second_node = candidates[candidates.keys.min]
-      
+
+      tree_nodes << second_node
       tree_adjacencies[first_node] ||= {}
       tree_adjacencies[first_node][second_node] = distance_between(first_node, second_node)
     end
