@@ -22,16 +22,17 @@ require_relative 'lib/complete_graph'
 
 require_relative 'lib/midi_creator'
 
+puts "**** [Recursive Extent Builder] ****"
+
 extent = ExtentBuilder.new(6)
+puts "Built extent recurively on #{extent.n} bells..."
+puts "  number of row in extent: #{extent.rows.length}"
+puts "  number of unique rows: #{extent.rows.uniq.length}"
+puts "  valid extent?: #{ExtentChecker.new(extent).check}"
 
-puts "**** [STATS] ****"
+puts "**** [Graph Builder] ****"
 
-puts "#rows: #{extent.rows.length}"
-puts "#rows (uniq): #{extent.rows.uniq.length}"
-
-puts "valid extent: #{ExtentChecker.new(extent).check}"
-
-puts "*****************"
+puts "Building graph..."
 
 # builder = GraphBuilder.new(4, [ 'x', '14', '12'])
 # builder = GraphBuilder.new(7, [ 'x', '16', '12'])
@@ -39,21 +40,22 @@ puts "*****************"
 # builder = GraphBuilder.new(6, [ 'x', '16', '12'])
 builder = GraphBuilder.new(5, [ '345', '145', '125', '123'])
 
-puts builder.nodes.length
+puts "  graph has #{builder.nodes.length} nodes."
 
-puts "*****************"
+puts "**** [Complete Graph] *****"
 
+puts "Building complete graph over same nodes..."
 complete = CompleteGraph.new(builder.nodes)
 
-puts complete.adjacencies.map { |k, v| v.length }.inject(0, &:+)
+puts "  total adjacencies: " + complete.adjacencies.map { |k, v| v.length }.inject(0, &:+).to_s
 
-puts CycleFinder.new(complete.nodes, complete.adjacencies).conditions_met?
+puts " connected enough for cycle finding?: " + CycleFinder.new(complete.nodes, complete.adjacencies).conditions_met?.to_s
 
-puts "*****************"
+puts "**** [Hamiltonian Cycle Finding] ****"
 
 finder = CycleFinder.from_graph_builder(builder)
 
-puts finder.conditions_met?
+puts "Original graph connected enough for guaranteed results?: " + finder.conditions_met?.to_s
 results = finder.seek!
 
 cycles = []
@@ -65,17 +67,17 @@ results.each do |starting_node, node_results|
   end
 end
 
-puts "Cycle count: #{cycles.length}"
-puts "Valid cycle count: #{cycles.select { |cycle| ExtentChecker.new(cycle).check }.length}"
-puts "Unique cycle count: #{cycles.uniq.length}"
+puts "  cycle count: #{cycles.length}"
+puts "  valid cycle count: #{cycles.select { |cycle| ExtentChecker.new(cycle).check }.length}"
+puts "  unique cycle count: #{cycles.uniq.length}"
 
-puts "*****************"
+puts "**** [MIDI Sequencing] ****"
 
 five_bells = ExtentBuilder.new(5)
 
 pentatonic = ["Db4", "Eb4", "Gb4", "Ab4", "Bb4"]
 tracks = []
-pentatonic.length.times { |x| tracks << five_bells.tune(pentatonic.rotate(x)) }
+3.times { |x| tracks << five_bells.tune(pentatonic.rotate(x)) }
 
 MidiCreator.new(tracks).export!
 
