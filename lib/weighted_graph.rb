@@ -8,6 +8,17 @@ class WeightedGraph
     self.adjacencies = adjacencies
   end
   
+  def to_dimacs(filename)
+    edges = edge_array
+    path = File.join(File.dirname(__FILE__), "..", "#{filename}.graph")
+    File.open(path, 'w') do |file|
+      file.write("c WeightedGraph.rb output at #{Time.now} \n")
+      file.write("p edge #{nodes.length} #{edges.length} \n")
+      
+      edges.each { |edge| file.write(edge.join(' ') + "\n") }
+    end
+  end
+  
   # Implementing Prim's Algorithm for finding MST
   def minimum_spanning_tree
     tree_nodes = [ nodes.first ]
@@ -33,6 +44,18 @@ class WeightedGraph
   end
   
   private
+  
+  def edge_array
+    edges = []
+    
+    adjacencies.each do |node1, connections|
+      connections.each do |node2, distance|
+        edges << [nodes.index(node1) + 1, nodes.index(node2) + 1, distance]
+      end
+    end
+    
+    edges.uniq
+  end
   
   def connected_to(node)
     adjacencies[node].keys

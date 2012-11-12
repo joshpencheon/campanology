@@ -99,7 +99,7 @@ builder.adjacencies.each do |node, connections|
   weighted_adjacencies[node] ||= {} 
 
   connections.each do |other_node| 
-    distance = [node, other_node].sort.flatten.join.to_i
+    distance = [node, other_node].map { |n| n.join('').to_i }.inject(0, &:+)
     weighted_adjacencies[node][other_node] = distance
   end
 end
@@ -112,4 +112,10 @@ mst = weighted_graph.minimum_spanning_tree
 puts "  MST has #{mst.nodes.length} nodes"
 puts "  adjacency count: " + mst.adjacencies.map { |k, v| v.length }.inject(0, &:+).to_s
 
-puts "**********************"
+puts "**** [Weighted Graph - DIMACS] *****"
+
+puts "Exporting weighted graph to file, using DIMAC formatting..."
+ weighted_graph.to_dimacs("weighed_builder")
+puts "...done!"
+
+puts "************************"
