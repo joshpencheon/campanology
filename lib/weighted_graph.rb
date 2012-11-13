@@ -15,7 +15,7 @@ class WeightedGraph
       file.write("c WeightedGraph.rb output at #{Time.now} \n")
       file.write("p edge #{nodes.length} #{edges.length} \n")
       
-      edges.each { |edge| file.write(edge.join(' ') + "\n") }
+      edges.each { |edge| file.write('e ' + edge.join(' ') + "\n") }
     end
   end
   
