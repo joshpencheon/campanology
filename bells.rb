@@ -115,7 +115,7 @@ puts "  adjacency count: " + mst.adjacencies.map { |k, v| v.length }.inject(0, &
 puts "**** [Weighted Graph - DIMACS] *****"
 
 puts "Exporting weighted graph to file, using DIMAC formatting..."
- weighted_graph.to_dimacs("weighed_builder")
+ weighted_graph.to_dimacs("weighted_builder")
 puts "...done!"
 
 puts "************************"
