@@ -15,6 +15,10 @@ class GraphBuilder
     puts self.adjacencies.map { |k, v| v.length }.inject(0, &:+)
   end
     
+  def connected?(node1, node2)
+    !! self.adjacencies[node1].index(node2)
+  end    
+    
   private
   
   def connect(node1, node2)    

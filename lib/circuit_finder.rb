@@ -2,7 +2,6 @@ class CircuitFinder
   
   attr_accessor :graph
   attr_accessor :backup_edges
-  attr_accessor :removed_edges
   
   def initialize(graph)
     puts "CF init with #{graph.nodes.length} nodes and #{graph.edges.length} edges"
@@ -17,24 +16,18 @@ class CircuitFinder
     #   raise ArgumentError, "Not all vertices have even degree!"
     # end
 
-    self.graph = graph
-    self.backup_edges = graph.edges
-    self.removed_edges = []
-        
-    @call_count = 0
+    self.graph = graph.clone
   end
   
   def seek!
     @tour = []
+    @call_count = 0
     seek_from(graph.nodes.first)
-    graph.edges = backup_edges
-    puts "seek_from called #{@call_count} times"
     return @tour
   end
   
   private  
     
-   
   # === The Algorithm ===
   #
   #   'tour' is a stack
@@ -49,36 +42,25 @@ class CircuitFinder
   #   where u is any vertex with a non-zero degree.
   #    
   def seek_from(node)
-    @call_count += 1
+    puts "seek called for #{@call_count += 1} [graph.edges.length = #{graph.edges.length}]"        
     
-    edges_for_node = graph.edges_for(node)
-    puts "[#{@call_count}] got #{edges_for_node.length} edges for node"
-    puts "graph has #{edge_count = graph.edges.length} edges in total"
-
-    edges_for_node.each_with_index do |edge, index|
-      nth_occurance = (edges_for_node[0, index-1] || [edge]).count(edge)
-      count = 0
-      
-      new_edges = []
-      graph.edges.each_with_index do |edge_i, i|
-        if edge_i != edge
-          new_edges << edge_i
-        else
-          count += 1
-          new_edges << edge_i unless count == nth_occurance
-          puts "#{count} == #{nth_occurance} ?"
-        end
-      end
-            
-      graph.edges = new_edges
-      
-      if new_edges.any?
-        other_node = [edge[0], edge[2]].reject { |n| n == node }.first
-        seek_from(other_node)
+    if graph.edges.length == 5
+      puts "start = #{@tour.first}"
+      puts "node = #{node}"
+      puts graph.edges.inspect
+    end
+    
+    
+    graph.edges.each_with_index do |edge, index|  
+      if edge[0] == node
+        graph.edges.delete_at(index)
+        seek_from(edge[2])
+      elsif edge[2] == node
+        graph.edges.delete_at(index)
+        seek_from(edge[0])        
       end
     end
     
-    puts "#[#{graph.nodes.index(node)}]: adding #{node} to tour..., when #edges = #{edge_count}"
     @tour.push(node)
   end
   
