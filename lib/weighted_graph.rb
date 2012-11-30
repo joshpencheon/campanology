@@ -113,6 +113,13 @@ class WeightedGraph
       self.edges.select { |edge| edge.first == nodes || edge.last == nodes }
     end
   end
+  
+  # Remove ALL instances of _edge_ from (multi)graph.
+  def drop_edge(edge)
+    self.edges.delete(edge) while self.edges.count(edge) > 0
+    
+    puts "edge dropped: [#{edge[0].join}<->#{edge[2].join}]; #{self.edges.length} remaining"
+  end
     
   def connected?(node1, node2)
     !! connected_to(node1).index(node2)
