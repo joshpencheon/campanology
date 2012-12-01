@@ -5,7 +5,13 @@ class Node
   
   def initialize(label)
     self.label = label.to_s
-    self.connections = {}
+    reset_connections!
+  end
+
+  def inititialize_copy(original)
+    super
+    @connections = @connections.dup
+    @label       = @label.dup
   end
 
   def degree
@@ -17,8 +23,20 @@ class Node
     connections[other_node] << distance
   end
   
-  def disconnect(other_node)
-    connections.delete(other_node)
+  def reset_connections!
+    self.connections = {}
+  end
+  
+  def disconnect(other_node, distance = nil)
+    if distance
+      (connections[other_node] || []).delete(distance)
+    else
+      connections.delete(other_node)
+    end
+  end
+  
+  def keep_connections(other_nodes)
+    connections.select! { |node, dists| other_nodes.index(node) }
   end
   
   def connected?(other_node)
@@ -26,15 +44,27 @@ class Node
   end
   
   def distance_between(other_node)
-    if conneected?(other_node)
-      connections[other_node].min
-    else
-      0
-    end
+    connected?(other_node) ? connections[other_node].min : 0
+  end
+  
+  def connected_nodes
+    connections.keys
   end
   
   def to_s
     label
   end
   
+  # def ==(other)
+  #   self.label == other.label
+  # end
+  #   
+  # def eql?(other)
+  #   self.label == other.label
+  # end
+  # 
+  # def equal?(other)
+  #   self.label == other.label
+  # end
+    
 end

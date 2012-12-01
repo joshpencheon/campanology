@@ -3,7 +3,7 @@ class ExtentChecker
   attr_accessor :rows
 
   def initialize(extent)
-    self.rows = extent.is_a?(Array) ? extent : extent.rows
+    self.rows = parse_rows(extent.is_a?(Array) ? extent : extent.rows)
   end
 
   def check
@@ -29,6 +29,12 @@ class ExtentChecker
     end
     
     valid
+  end
+  
+  def parse_rows(rows)
+    rows.map do |row|
+      row.is_a?(Array) ? row : row.to_s.split(//).map(&:to_i)
+    end
   end
 
 end
