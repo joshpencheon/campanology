@@ -44,29 +44,30 @@ class WeightedGraph
     tree_nodes = [ nodes.first ]
     tree_edges = []
     
+    available_edges = edges.select { |edge|
+      (tree_nodes.index(edge.first) && !tree_nodes.index(edge.last)) || 
+        (!tree_nodes.index(edge.first) && tree_nodes.index(edge.last))
+    }
+    
     while tree_nodes.length < nodes.length
-      # candidates = {}.tap do |hash|
-      #   tree_nodes.each do |node|  
-      #     connected_to(node).each do |other_node|
-      #       distance = distance_between(node, other_node)
-      #       hash[distance] = [node, other_node] unless tree_nodes.index(other_node)
-      #     end
-      #   end
-      #   
-      # 
-      # end
       
-      new_edge = edges.select { |edge|
-        (tree_nodes.index(edge.first) && !tree_nodes.index(edge.last)) || 
-          (!tree_nodes.index(edge.first) && tree_nodes.index(edge.last))
-      }.inject do |best_edge, edge|
+      print "#{tree_nodes.length} "
+      
+      # Find best edge:            
+      new_edge = available_edges.inject do |best_edge, edge|
         best_edge[1] < edge[1] ? best_edge : edge
       end
-      
       tree_edges << new_edge
       
-      tree_nodes << new_edge[0] << new_edge[2]
-      tree_nodes.uniq!
+      # Identify new node:
+      new_node = tree_nodes.index(new_edge[0]) ? new_edge[2] : new_edge[0]
+      tree_nodes << new_node
+      
+      # remove useless edges:
+      available_edges.reject! do |edge|
+        edge.first == new_node || edge.last == new_node
+      end
+      
     end
     
     puts "MST: got #{tree_nodes.length} nodes before dedup."
