@@ -5,18 +5,19 @@ class WeightedGraph
   attr_accessor :nodes
   attr_accessor :edges
   
-  def self.combine(graph1, graph2)        
-    new(graph1.nodes | graph2.nodes, graph1.edges + graph2.edges)
+  def self.combine(graph1, graph2) 
+    node_list = graph1.nodes.clone
+    
+    graph2.nodes.each do |node|
+      proxy = graph1.get_node(node)
+      proxy ? proxy.merge!(node, graph1) : node_list << node
+    end
+    
+    new(node_list)
   end
   
-  def initialize(nodes, edges = [])
+  def initialize(nodes)
     self.nodes = nodes
-    
-    nodes.each(&:reset_connections!) if edges.any?
-    edges.each do |edge|
-      node1, distance, node2 = edge
-      connect!(node1, node2, distance)
-    end
   end
   
   def edges
@@ -26,10 +27,6 @@ class WeightedGraph
     }.compact
   end
     
-  def clone
-    WeightedGraph.new(nodes.clone, edges.clone)
-  end
-  
   def build_sub_graph(edge_list)    
     sub_graph = WeightedGraph.new(self.nodes.map { |n| Node.new(n) })
         
@@ -61,26 +58,21 @@ class WeightedGraph
     candidates = nodes.first.connected_nodes.map { |n| [ nodes.first, n, n.distance_between(nodes.first) ] }
     
     while tree.nodes.length < nodes.length
-      print "#{tree.nodes.length}"
-
+      # Pick the first suitable edge
       next_edge = nil
       known_weights.each do |weight|
-          next_edge = candidates.detect { |edge| edge.last == weight }
-          break if next_edge
+        next_edge = candidates.detect { |edge| edge.last == weight }
+        break if next_edge
       end
       
+      # Break it down
       connected_existing_node, connected_new_node, distance = next_edge      
       
+      # Add to the tree
       new_node      = Node.new(connected_new_node) 
       existing_node = tree.get_node(connected_existing_node)
-      
       tree.nodes << new_node
-            
       tree.connect!(existing_node, new_node, distance)
-      
-      print '.'
-      $stdout.flush
-      
       
       # Remove edges that would now create cycles:
       dropping = tree.nodes.map do |node|
@@ -88,18 +80,11 @@ class WeightedGraph
         [ connected_node, connected_new_node, connected_new_node.distance_between(connected_node) ]
       end
       candidates -= dropping
-
-      print '.'
-      $stdout.flush
       
       # Add unlocked edges:
       connected_new_node.connected_nodes.each do |node|
         candidates << [ connected_new_node, node, node.distance_between(connected_new_node) ] unless tree.nodes.index(tree.get_node(node))
-      end
-
-      print '.  '
-      $stdout.flush      
-      
+      end      
     end
     
     tree

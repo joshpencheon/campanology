@@ -13,6 +13,13 @@ class Node
     @connections = @connections.dup
     @label       = @label.dup
   end
+  
+  def merge!(other_node, context)
+    other_node.connections.each do |node, distances|
+      proxy = context.get_node(node)
+      distances.each { |dist| connect(proxy, dist) }
+    end
+  end
 
   def degree
     connections.values.flatten.length
@@ -54,17 +61,5 @@ class Node
   def to_s
     label
   end
-  
-  # def ==(other)
-  #   self.label == other.label
-  # end
-  #   
-  # def eql?(other)
-  #   self.label == other.label
-  # end
-  # 
-  # def equal?(other)
-  #   self.label == other.label
-  # end
     
 end
