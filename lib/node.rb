@@ -4,7 +4,7 @@ class Node
   attr_accessor :label
   
   def initialize(label)
-    self.label = label.to_s        
+    self.label = label.to_s
     reset_connections!
   end
    
