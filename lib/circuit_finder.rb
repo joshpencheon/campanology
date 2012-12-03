@@ -1,56 +1,52 @@
+require_relative 'weighted_graph'
+
 class CircuitFinder
   
   attr_accessor :graph
-  attr_accessor :backup_graph
+  attr_accessor :original_graph
   
   def initialize(graph)
-    self.backup_graph = graph
-    self.graph = graph.clone
+    self.original_graph = graph
+    self.graph = graph.dup
   end
   
-  def seek!        
-    tour = []
+  def seek!
+    tour = WeightedGraph.new([])        
     seek_from(graph.nodes.first, tour)
-        
-    puts "checking connections..."
-    tour.each_with_index do |v, i|
-      index = (i + 1) % tour.length
-      if !backup_graph.connected?(v, tour[index])
-        puts "#{i} FAIL: #{v} <-/-> #{tour[index]}, #{index}, #{tour.length}"
-      end
-    end
     
-    tour
+    # Remove all connections:
+    tour.nodes.each(&:reset_connections!)    
+    
+    # Connect loop:
+    tour.nodes.push(tour.nodes.first)
+        
+    # A new graph, with the nodes ordered in an Eulerian tour:
+    tour.nodes
   end
   
   private  
+   
+  def seek_from(node, path)        
+    path.nodes.push(node)
+        
+    next_nodes = path.nodes.last ? path.nodes.last.connected_nodes : []
     
-  def seek_from(node, path)    
-    next_nodes = graph.connected_to(path.last)
-    
-    if next_nodes.any?
-      count_map = graph.edges_for(node).inject({}) do |hash, edge|
-        hash[edge] ||= 0
-        hash[edge] += 1
-        hash 
-      end
-          
-      edge, count = count_map.first
-      other_node = edge[0] == node ? edge[2] : edge[0]
-          
-      graph.drop_edge(edge)
+    if next_nodes.any?  
+      other_node, distances = node.connections.first
+      count = distances.length
+      
+      graph.disconnect!(node, other_node)
           
       if count == 2
-        path.push(other_node)
+        path.nodes.push(other_node)
         path = seek_from(node, path)
       elsif count == 1
         path = seek_from(other_node, path)
       else
         raise "very multigraph - unsupported!"
-      end
-          
+      end 
     else
-      path.pop
+      path.nodes.pop
       path = extrude_path(path)
     end
         
@@ -58,9 +54,10 @@ class CircuitFinder
   end
   
   def extrude_path(path)    
-    path.each_with_index do |node, index|
-      if graph.edges_for(node).length > 0
-        path.insert(index, *seek_from(node, []))
+    path.nodes.each_with_index do |node, index|      
+      if node.degree > 0
+        extrusion = seek_from(node, WeightedGraph.new([]))
+        path.nodes.insert(index, *extrusion.nodes)
       end
     end
 

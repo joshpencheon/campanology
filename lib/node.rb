@@ -4,20 +4,16 @@ class Node
   attr_accessor :label
   
   def initialize(label)
-    self.label = label.to_s
+    self.label = label.to_s        
     reset_connections!
   end
-
-  def inititialize_copy(original)
-    super
-    @connections = @connections.dup
-    @label       = @label.dup
-  end
-  
+   
   def merge!(other_node, context)
+    raise ArgumentError, "Cannot merge with self!" if self.equal?(other_node)
+    
     other_node.connections.each do |node, distances|
       proxy = context.get_node(node)
-      distances.each { |dist| connect(proxy, dist) }
+      distances.each_with_index { |dist, index| connect(proxy, dist) }
     end
   end
 
@@ -36,9 +32,10 @@ class Node
   
   def disconnect(other_node, distance = nil)
     if distance
-      (connections[other_node] || []).delete(distance)
+      target = connections.find { |key, value| key.label == other_node.label }
+      (target || []).delete(distance)
     else
-      connections.delete(other_node)
+      connections.delete_if { |key, value| key.label == other_node.label }
     end
   end
   
@@ -60,6 +57,10 @@ class Node
   
   def to_s
     label
+  end
+  
+  def inspect
+    "#{self.class}, #{self.object_id}: <#{label}>, connections: #{connections.map { |k,v| k.to_s + '->' + v.inspect }}"
   end
     
 end
