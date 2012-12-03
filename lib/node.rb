@@ -13,7 +13,7 @@ class Node
     
     other_node.connections.each do |node, distances|
       proxy = context.get_node(node)
-      distances.each_with_index { |dist, index| connect(proxy, dist) }
+      distances.each { |dist| connect(proxy, dist) }
     end
   end
 
