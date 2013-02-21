@@ -42,7 +42,8 @@ class WeightedGraph
     sub_graph = WeightedGraph.new(self.nodes.map { |n| Node.new(n) })
         
     edge_list.each do |connection|
-      node1, node2 = connection.map { |i| nodes[i-1] }
+      # node1, node2 = connection.map { |i| nodes[i-1] }
+      node1, node2 = connection.map { |i| nodes[i] }      
       sub_graph.connect!(sub_graph.get_node(node1), sub_graph.get_node(node2), node1.distance_between(node2))
     end
     
@@ -69,7 +70,7 @@ class WeightedGraph
     candidates = nodes.first.connected_nodes.map { |n| [ nodes.first, n, n.distance_between(nodes.first) ] }
     
     while tree.nodes.length < nodes.length
-      
+      print "#{tree.nodes.length} " if tree.nodes.length % 10 == 0
       # Pick the first suitable edge
       next_edge = nil
       known_weights.each do |weight|
@@ -103,7 +104,7 @@ class WeightedGraph
   end
 
   def connect!(node1, node2, distance)
-    raise ArgumentError, "#{node1} #{node2} distance must be positive [not #{distance}]" unless distance > 0
+    raise ArgumentError, "<#{node1}> <#{node2}>: distance must be positive [not #{distance}]" unless distance > 0
         
     node1.connect(node2, distance)
     node2.connect(node1, distance)    

@@ -41,8 +41,11 @@ puts "**** [Graph Builder] ****"
 puts "Building graph..."
 
 # builder = GraphBuilder.new(4, [ 'x', '14', '12'])
-# builder = GraphBuilder.new(6, [ 'x', '16', '12'])
 builder = GraphBuilder.new(5, [ '345', '145', '125', '123'])
+# builder = GraphBuilder.new(6, [ 'x', '16', '12'])
+# builder = GraphBuilder.new(6, ['3456', '1456', '1256', '1236', '1234', '12'])
+# builder = GraphBuilder.new(7, ['34567', '14567', '12567', '12367', '12347', '12345'])
+# builder = GraphBuilder.new(7, ['34567', '14567', '12567', '12367', '12347', '12345'])
 
 puts "  graph has #{builder.nodes.length} nodes."
 
@@ -90,8 +93,8 @@ puts "Extent MIDI outputted!"
 
 puts "**** [Change finder] ****"
 
-bell_count = 7
-puts "On #{bell_count} bells, expect #{ChangeFinder.count_for(bell_count)} valid changes:"
+bell_count = (builder.nodes.first || []).length
+puts "On #{bell_count} bells, expect #{ChangeFinder.count_for(bell_count)} valid changes..."
 ChangeFinder.new(bell_count).valid_changes_in_notation.each_with_index { |change, index| puts "  #{index+1}:  #{change.inspect}" }
 
 puts "**** [Weighted Graph - Prim's] ****"
@@ -101,7 +104,7 @@ puts "Weighting original graph... [CAUTION BROKEN]"
 puts "  init nodes..."
 weighted_graph = WeightedGraph.new(builder.nodes.map { |arr| Node.new(arr.join) })
 
-puts "  initial connections..."
+puts "  initial connections... [using #{builder.changes.length} changes]"
 # Connect up vertices with used changes
 builder.adjacencies.keys.each_with_index do |node, index|
   (builder.adjacencies[node] - builder.adjacencies.keys[0, index]).each do |other_node|
@@ -124,7 +127,8 @@ end
 
 puts "  - has #{weighted_graph.nodes.length} nodes"
 puts "  - has #{weighted_graph.edges.length} edges"
-puts "  - distinct weights: #{weighted_graph.edges.map {|e| e[1] }.uniq.inspect}"
+puts "  - weight distribution: #{weighted_graph.edges.inject({}) {|h, e| h[e[1]] ||= 0; h[e[1]] += 1; h }.inspect}"
+puts "  - expected: dist[0.5] + dist[0.51] = twice number of nodes, at proportion of used-changes:available-changes."
 
 puts "Finding MST using Prim's algorithm..."
 
@@ -163,6 +167,14 @@ puts "**** [Weighted Graph - Multigraph] *****"
 
 puts "creating multigraph:"
 
+# mst.nodes.each do |node|
+#   puts "#{node.to_s} -> #{node.connections.map {|k, v| k.to_s + ' ' + v.inspect}}"
+# end
+# puts "...."
+# matching.nodes.each do |node|
+#   puts "#{node.to_s} -> #{node.connections.map {|k, v| k.to_s + ' ' + v.inspect}}"
+# end
+
 multigraph = WeightedGraph.combine(mst, matching)
 
 puts "  multigraph has #{multigraph.nodes.length} nodes"
@@ -180,6 +192,30 @@ puts "  has #{multigraph.nodes.length} nodes"
 puts "  has #{multigraph.nodes.map(&:degree).inject(0, &:+) / 2} edges"
 
 puts "eulerian circuit:"
-puts "  visits #{eulerian_circuit.length} nodes"
+puts "  visits #{eulerian_circuit.nodes.length} nodes"
 
+# multigraph.nodes.each do |node|
+#   puts "#{node.to_s} -> #{node.connections.map {|k, v| k.to_s + ' ' + v.inspect}}"
+# end
+
+# lengths = []
+# eulerian_circuit.each_with_index do |node, index|
+#   if index > 0
+#     multigraph.get_node(node).connections[multigraph.get_node(eulerian_circuit[index-1])].each { |d| lengths << d}
+#   end
+# end
+
+# eulerian_circuit.nodes.each_with_index do |node, index|
+#   if index > 0
+#     other_node = eulerian_circuit[index-1] 
+#     multigraph.get_node(node).distance_between(multigraph.get_node(other_node)).each do |dist|
+#       if dist == 0.51 
+#         
+#       end
+#     end
+#   end
+# end
+
+puts "  degree distribution: " + eulerian_circuit.nodes.map(&:degree).uniq.inspect
+puts "  distinct weights: #{eulerian_circuit.edges.map {|e| e[1] }.uniq.inspect}"
 puts "************************"

@@ -10,9 +10,7 @@ class GraphBuilder
     # self.adjacencies = Matrix.build(size) { 0 }
     self.adjacencies = Hash.new { |hash, key| hash[key] = [] }    
     self.nodes = [ ]
-    attach_node((1..n).to_a)
-  
-    puts self.adjacencies.map { |k, v| v.length }.inject(0, &:+)
+    grow_from((1..n).to_a)
   end
     
   def connected?(node1, node2)
@@ -33,15 +31,45 @@ class GraphBuilder
     self.adjacencies[node2].uniq!
   end
   
-  def attach_node(row)
-    if !self.nodes.include?(row)
-      insertion_index = self.nodes.length
+  def add(node)
+    self.nodes << node unless self.nodes.include?(node)
+  end
+  
+  #  1: public void DfsIterative(Node node) {
+  #  2:   var trail = new Stack<Transition>();
+  #  3:   DoSomethingWithNode(node);
+  #  4:   PushAllTransitionsToStack(node, trail);
+  #  5:   while(trail.Count>0) {
+  #  6:     Transition t = trail.Pop();
+  #  7:     Node destination = t.Destination;
+  #  8:     DoSomethingWithNode(destination);
+  #  9:     PushAllTransitionsToStack(destination, trail);
+  # 10:   }
+  # 11: }
+  
+  def grow_from(row)
+    join_path = []
+    
+    # Do Something with node...
+    add(row)
       
-      self.nodes << row
-      apply_changes(row).each do |new_row| 
-        connect(row, new_row)
-        attach_node(new_row) 
-      end
+    # Push all transitions...
+    apply_changes(row).each do |new_row| 
+      connect(row, new_row)
+      join_path << new_row unless self.nodes.include?(new_row)
+    end
+          
+    while join_path.length > 0
+      next_row = join_path.pop
+      
+      # Do Something with node...
+      add(next_row)
+      
+      # Push all transitions...
+      apply_changes(next_row).each do |next_new_row| 
+        connect(next_row, next_new_row)
+        join_path << next_new_row  unless self.nodes.include?(next_new_row)
+      end 
     end
   end
   
@@ -56,7 +84,7 @@ class GraphBuilder
     else
       fixed_indices = change.split(//).map { |i| i.to_i - 1 }
       
-      [].tap do |new_row|
+      return [].tap do |new_row|
         index_skew = 0
         row.each_with_index do |bell, index|
           if fixed_indices.include?(index)
@@ -73,6 +101,7 @@ class GraphBuilder
           end
         end
       end
+        
     end
   end
   
