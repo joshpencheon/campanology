@@ -20,13 +20,10 @@ class CycleFinder
     results = {}
     self.nodes.each { |node| results[node] = seek_from_node(node) }
     
-    # results.each do |node, output|
-    #   puts "From #:#{self.nodes.index(node)} #{node.inspect}, got '#{output.first}', length #{output.last.length}", true
-    # end
-    
-    results
+    return results
   end
   
+  # Does this graph satisfy the Dirac condition?
   def conditions_met?
     nodes.map { |node| connected_to(node).length }.min >= (nodes.length / 2)
   end
@@ -58,14 +55,12 @@ class CycleFinder
   
   private
   
+  # Run the algorithm for a given starting node:
   def seek_from_node(starting_node)
     puts "seek started from node #{starting_node.inspect}..."
     
     # -- PART I --  (starting from one node for now...)  
     visited_nodes = grow_basic_path([ starting_node ])
-    
-    # puts "DEBUG: ADJ: #{self.adjacencies.inspect}"
-    # puts "DEBUG: nodes connected to first: #{connected_to(nodes.first).inspect}"
     
     puts "got basic path of length #{visited_nodes.length}, moving on to IIa)..."
     
@@ -140,9 +135,7 @@ class CycleFinder
 
       first_node = unvisited_neighbours_of(extension_point, visited_nodes).first        
       unvisited_path = outside_cycle_finder.grow_basic_path([ first_node ])
-        
-      # visited_nodes = trim_and_extend_path(additional_nodes, visited_nodes, extension_index)
-          
+                  
       v_j = (visited_nodes & connected_to(unvisited_path.last)).detect do |node|
         j = visited_nodes.index(node)
         (j > extension_index + 1) && (j < visited_nodes.length) && 
@@ -191,6 +184,7 @@ class CycleFinder
     visited_nodes = grow_basic_path(visited_nodes)
   end
   
+  # Find suitable starting points for Part IIa):
   def extract_target_nodes_from_path(visited_nodes)
     connected_to(visited_nodes.last).select do |node|
       i = visited_nodes.index(node) 

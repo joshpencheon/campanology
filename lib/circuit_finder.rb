@@ -14,21 +14,10 @@ class CircuitFinder
     tour = WeightedGraph.new([])        
     seek_from(graph.nodes.first, tour)
     
-    # Remove all connections:
-    # tour.nodes.each(&:reset_connections!)    
-    
-    # tour.nodes.each_with_index do |node, index|
-    #   i = (index + 1) % tour.nodes.length
-    #   
-    #   dist = original_graph.get_node(node).connections[original_graph.get_node(tour.nodes[i])].first
-    #   node.connect(tour.nodes[i], dist)
-    # end
-    
-    # Connect loop:
-    # tour.nodes.push(tour.nodes.first)
-    puts tour.nodes.select { |node| node.degree % 2 == 1 }.map(&:to_s)
+    # puts tour.nodes.select { |node| node.degree % 2 == 1 }.map(&:to_s)
     # A new graph, with the nodes ordered in an Eulerian tour:
     # tour.nodes
+    
     tour
   end
   
@@ -43,13 +32,9 @@ class CircuitFinder
       min_distance = graph.get_node(node).connections.values.flatten.min
       other_node, distances = graph.get_node(node).connections.detect {|other, dists| dists.include?(min_distance) }
         
-      # other_node, distances = node.connections.first
-      count = distances.length
-      
-      # graph.disconnect!(node, other_node)
-          
+      count = distances.length  
+        
       if count == 2
-        puts "=============== at a count 2"
         add_node_to_path(node, other_node, path)
         
         path = seek_from(node, path, other_node)
@@ -69,7 +54,7 @@ class CircuitFinder
   
   def add_node_to_path(previous_node, node, path)
     if new_node = path.get_node(node)
-      # do nothing
+      # Do nothing!
       puts "existing node: #{node} [deg = #{new_node.degree}]"
     else
       puts "new node: #{node}"
@@ -96,9 +81,7 @@ class CircuitFinder
   def extrude_path(path)    
     path.nodes.each_with_index do |node, index|      
       if graph.get_node(node).degree > 0
-        # puts "beginning extrusion from #{node}"
         extrusion = seek_from(node, WeightedGraph.new([]))
-        # path.nodes.insert(index, *extrusion.nodes)
         merge_paths(path, extrusion)
       end
     end
