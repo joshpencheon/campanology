@@ -1,5 +1,7 @@
 class CycleFinder
   
+  DEBUG = true
+  
   attr_accessor :adjacencies
   attr_accessor :nodes
   
@@ -25,7 +27,9 @@ class CycleFinder
   
   # Does this graph satisfy the Dirac condition?
   def conditions_met?
-    nodes.map { |node| connected_to(node).length }.min >= (nodes.length / 2)
+    puts     nodes.map { |node| connected_to(node).length }.min
+    puts nodes.length.to_f / 2
+    nodes.map { |node| connected_to(node).length }.min >= (nodes.length.to_f / 2)
   end
 
   # -- PART I --
@@ -36,13 +40,14 @@ class CycleFinder
     
     while current_node && unvisited_neighbours_of(current_node, visited_nodes).length > 0
       
-      puts " - looping, visited #{visited_nodes.length} nodes"
+      # puts " - looping, visited #{visited_nodes.length} nodes"
+      print " #{visited_nodes.length}"
       
       neighbours = unvisited_neighbours_of(current_node, visited_nodes).map { |neighbour|
         [ neighbour, unvisited_neighbours_of(neighbour, visited_nodes).length ]
       }
       
-      puts " - neighbours length: #{neighbours.length}, nodes: #{self.nodes.length}, visited_nodes: #{visited_nodes.length}"
+      # puts " - neighbours length: #{neighbours.length}, nodes: #{self.nodes.length}, visited_nodes: #{visited_nodes.length}"
       
       minimal_unvisited_count = neighbours.map(&:last).min
       current_node = neighbours.rassoc(minimal_unvisited_count).first
@@ -205,7 +210,7 @@ class CycleFinder
   end
   
   def puts(*args)
-    super if args.pop == true
+    super if (DEBUG || args.pop == true)
   end
 
 end

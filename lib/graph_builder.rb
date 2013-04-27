@@ -1,12 +1,14 @@
 class GraphBuilder
   
+  attr_accessor :size
+  
   attr_accessor :nodes
   attr_accessor :changes
   attr_accessor :adjacencies
   
   def initialize(n, changes)
     self.changes = changes
-    size = (1..n).to_a.inject(1, :*)
+    self.size = (1..n).to_a.inject(1, :*)
     # self.adjacencies = Matrix.build(size) { 0 }
     self.adjacencies = Hash.new { |hash, key| hash[key] = [] }    
     self.nodes = [ ]

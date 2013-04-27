@@ -41,9 +41,10 @@ puts "**** [Graph Builder] ****"
 puts "Building graph..."
 
 # builder = GraphBuilder.new(4, [ 'x', '14', '12'])
+# builder = GraphBuilder.new(4, [ 'x', '12'])
 builder = GraphBuilder.new(5, [ '345', '145', '125', '123'])
 # builder = GraphBuilder.new(6, [ 'x', '16', '12'])
-# builder = GraphBuilder.new(6, ['3456', '1456', '1256', '1236', '1234', '12'])
+# builder = GraphBuilder.new(6, [ '3456', '1456', '1256', '1236', '1234', '12'])
 # builder = GraphBuilder.new(7, ['34567', '14567', '12567', '12367', '12347', '12345'])
 # builder = GraphBuilder.new(7, ['34567', '14567', '12567', '12367', '12347', '12345'])
 
@@ -64,28 +65,42 @@ finder = CycleFinder.from_graph_builder(builder)
 
 puts "Original graph connected enough for guaranteed results?: " + finder.conditions_met?.to_s
 
-# results = finder.seek!
-# 
-# cycles = []
-# results.each do |starting_node, node_results|
-#   node_results ||= {}
-#   
-#   (node_results[:cycles] || []).each do |cycle|
-#     cycles << cycle
-#   end
-# end
-# 
+results = finder.seek!
+
+cycles = []
+results.each do |starting_node, node_results|
+  node_results ||= {}
+  
+  (node_results[:cycles] || []).each do |cycle|
+    cycles << cycle
+  end
+end
+
+valid_cycles = cycles.select { |cycle| builder.size == cycle.length && ExtentChecker.new(cycle).check }.map do |cycle|
+  cycle.map { |node| node.join() }
+end
+
 # puts "  cycle count: #{cycles.length}"
-# puts "  valid cycle count: #{cycles.select { |cycle| ExtentChecker.new(cycle).check }.length}"
-# puts "  unique cycle count: #{cycles.uniq.length}"
+puts "  valid cycle count: #{valid_cycles.length}"
+
+ordered_valid_cycles = valid_cycles.map { |cycle| cycle.rotate(cycle.index("12345") || 0).join('.') }
+
+puts "  unique cycle count: #{ordered_valid_cycles.uniq.length}"
+ordered_valid_cycles.each do |cycle|
+  puts cycle.inspect
+end
+
+1/0
 
 puts "**** [MIDI Sequencing] ****"
 
 five_bells = ExtentBuilder.new(5)
 
 pentatonic = ["Db4", "Eb4", "Gb4", "Ab4", "Bb4"]
+# pentatonic = ["C4", "D4", "E4", "F4", "G4"]
 tracks = []
-3.times { |x| tracks << five_bells.tune(pentatonic.rotate(x)) }
+5.times { |x| tracks << five_bells.tune(pentatonic.rotate(x)) }
+# 1.times { |x| tracks << five_bells.tune(pentatonic.rotate(x)) }
 
 MidiCreator.new(tracks).export!
 
@@ -219,3 +234,5 @@ puts "  visits #{eulerian_circuit.nodes.length} nodes"
 puts "  degree distribution: " + eulerian_circuit.nodes.map(&:degree).uniq.inspect
 puts "  distinct weights: #{eulerian_circuit.edges.map {|e| e[1] }.uniq.inspect}"
 puts "************************"
+
+puts multigraph.nodes.map(&:to_s) - eulerian_circuit.nodes.map(&:to_s)

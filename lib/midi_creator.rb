@@ -11,15 +11,7 @@ class MidiCreator
     "A6", "Bb6", "B6", "C7", "Db7", "D7", "Eb7", "E7", "F7", "Gb7", "G7", "Ab7", "A7", 
     "Bb7", "B7", "C8", "Db8", "D8", "Eb8", "E8", "F8", "Gb8", "G8", "Ab8", "A8", "Bb8", 
     "B8", "C9", "Db9", "D9", "Eb9", "E9", "F9", "Gb9", "G9" ]
-  
-  # attr_accessor :rows
-  # attr_accessor :note_map
-  # 
-  # def initialize(rows, note_map = build_default_note_map)
-  #   self.rows = rows
-  #   self.note_map = note_map
-  # end
-  
+    
   attr_accessor :tracks
   
   def initialize(tracks)
@@ -40,13 +32,6 @@ class MidiCreator
     MidiCreator::TONE_MAP.index(ring).to_s(16)
   end
    
-  # # Map 1..12 to the octave starting from middle C (c4).
-  # def build_default_note_map
-  #   {}.tap do |map|
-  #     (1..12).each { |tone| map[tone] = 59 + tone }
-  #   end
-  # end
-  
   def midi_bytes
     bytes = []
     

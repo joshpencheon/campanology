@@ -13,16 +13,13 @@ class CircuitFinder
   def seek!
     tour = WeightedGraph.new([])        
     seek_from(graph.nodes.first, tour)
-    
-    # puts tour.nodes.select { |node| node.degree % 2 == 1 }.map(&:to_s)
-    # A new graph, with the nodes ordered in an Eulerian tour:
-    # tour.nodes
-    
+        
     tour
   end
   
   private  
-   
+  
+  # Begin Hierholzer's algorithm from _node_ 
   def seek_from(node, path, previous_node = nil)
     add_node_to_path(previous_node, node, path)
         
@@ -44,8 +41,7 @@ class CircuitFinder
         raise "very multigraph - unsupported!"
       end 
     else
-      puts "got loop of length #{path.nodes.length - 1}"
-      path.nodes.pop
+      # path.nodes.pop
       path = extrude_path(path)
     end
         
@@ -54,11 +50,10 @@ class CircuitFinder
   
   def add_node_to_path(previous_node, node, path)
     if new_node = path.get_node(node)
-      # Do nothing!
-      puts "existing node: #{node} [deg = #{new_node.degree}]"
+      # _node_ has already been visisted in this path
     else
-      puts "new node: #{node}"
-
+      # _node_ has not been visisted in this path yet
+      
       new_node = Node.new(node.to_s)
       path.nodes.push(new_node)      
     end
@@ -78,6 +73,7 @@ class CircuitFinder
     new_node
   end
   
+  # Look for secondary paths starting from vertices of _path_
   def extrude_path(path)    
     path.nodes.each_with_index do |node, index|      
       if graph.get_node(node).degree > 0
@@ -88,9 +84,8 @@ class CircuitFinder
 
     path
   end
-  
-  private
-  
+    
+  # Combine two paths, merging in all connections.
   def merge_paths(keeping, discarding)
     discarding.nodes.each do |temp_node|
       keeping.nodes.push(Node.new(temp_node)) unless keeping.get_node(temp_node)      
